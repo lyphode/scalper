@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Activity, DollarSign } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, DollarSign, Clock } from 'lucide-react';
 
 interface MarketDataCardProps {
   symbol: string;
@@ -20,6 +20,27 @@ export const MarketDataCard: React.FC<MarketDataCardProps> = ({ symbol }) => {
     pe_ratio: 28.5,
     avgVolume: 67234567
   });
+  const [isMarketOpen, setIsMarketOpen] = useState(false);
+
+  // Check if market is open
+  useEffect(() => {
+    const checkMarketStatus = () => {
+      const now = new Date();
+      const day = now.getDay();
+      const hours = now.getHours();
+      
+      // Simplified check: Market open on weekdays (Mon-Fri) between 9:30 AM and 4:00 PM ET
+      const isWeekday = day >= 1 && day <= 5;
+      const isDuringMarketHours = hours >= 9 && hours < 16;
+      
+      setIsMarketOpen(isWeekday && isDuringMarketHours);
+    };
+
+    checkMarketStatus();
+    const intervalId = setInterval(checkMarketStatus, 60000); // Check every minute
+    
+    return () => clearInterval(intervalId);
+  }, []);
 
   // Simulated real-time updates
   useEffect(() => {
@@ -55,11 +76,17 @@ export const MarketDataCard: React.FC<MarketDataCardProps> = ({ symbol }) => {
     <Card className="bg-gray-800/50 border-gray-700 h-full">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 text-white">
             <span className="text-2xl font-bold">{symbol}</span>
             <Badge variant={isPositive ? "default" : "destructive"} className="text-xs">
               {isPositive ? "BUY" : "SELL"} Signal
             </Badge>
+            {!isMarketOpen && (
+              <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500">
+                <Clock className="h-3 w-3 mr-1" />
+                Market Closed
+              </Badge>
+            )}
           </div>
           {isPositive ? (
             <TrendingUp className="text-green-500" size={24} />
@@ -71,7 +98,7 @@ export const MarketDataCard: React.FC<MarketDataCardProps> = ({ symbol }) => {
       <CardContent className="space-y-6">
         {/* Price Section */}
         <div className="text-center border-b border-gray-700 pb-4">
-          <div className="text-4xl font-bold mb-2">
+          <div className="text-4xl font-bold mb-2 text-white">
             ${marketData.price.toFixed(2)}
           </div>
           <div className={`text-lg flex items-center justify-center space-x-2 ${
@@ -91,11 +118,11 @@ export const MarketDataCard: React.FC<MarketDataCardProps> = ({ symbol }) => {
             </div>
             <div>
               <div className="text-gray-400 text-sm mb-1">Volume</div>
-              <div className="font-semibold">{formatVolume(marketData.volume)}</div>
+              <div className="font-semibold text-white">{formatVolume(marketData.volume)}</div>
             </div>
             <div>
               <div className="text-gray-400 text-sm mb-1">Market Cap</div>
-              <div className="font-semibold">{formatNumber(marketData.marketCap)}</div>
+              <div className="font-semibold text-white">{formatNumber(marketData.marketCap)}</div>
             </div>
           </div>
           <div className="space-y-4">
@@ -105,11 +132,11 @@ export const MarketDataCard: React.FC<MarketDataCardProps> = ({ symbol }) => {
             </div>
             <div>
               <div className="text-gray-400 text-sm mb-1">Avg Volume</div>
-              <div className="font-semibold">{formatVolume(marketData.avgVolume)}</div>
+              <div className="font-semibold text-white">{formatVolume(marketData.avgVolume)}</div>
             </div>
             <div>
               <div className="text-gray-400 text-sm mb-1">P/E Ratio</div>
-              <div className="font-semibold">{marketData.pe_ratio.toFixed(2)}</div>
+              <div className="font-semibold text-white">{marketData.pe_ratio.toFixed(2)}</div>
             </div>
           </div>
         </div>
