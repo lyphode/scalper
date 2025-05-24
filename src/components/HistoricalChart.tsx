@@ -40,13 +40,16 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({ symbol }) => {
   useEffect(() => {
     const generateData = () => {
       const data = [];
-      const basePrice = 150;
+      const isIndex = symbol.startsWith('^');
+      // Use higher base price for indices
+      const basePrice = isIndex ? 1000 + Math.random() * 5000 : 150;
       let currentPrice = basePrice;
       
       const points = timeRange === '1D' ? 390 : timeRange === '1W' ? 35 : 30; // 1-minute intervals for 1D
       
       for (let i = 0; i < points; i++) {
-        const change = (Math.random() - 0.5) * 2;
+        // Larger price movements for indices
+        const change = (Math.random() - 0.5) * (isIndex ? 10 : 2);
         currentPrice += change;
         
         const time = timeRange === '1D' 
@@ -59,8 +62,8 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({ symbol }) => {
           time,
           price: currentPrice.toFixed(2),
           volume: Math.floor(Math.random() * 1000000) + 500000,
-          high: (currentPrice + Math.random() * 2).toFixed(2),
-          low: (currentPrice - Math.random() * 2).toFixed(2),
+          high: (currentPrice + Math.random() * (isIndex ? 10 : 2)).toFixed(2),
+          low: (currentPrice - Math.random() * (isIndex ? 10 : 2)).toFixed(2),
         });
       }
       return data;
@@ -69,12 +72,34 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({ symbol }) => {
     setChartData(generateData());
   }, [symbol, timeRange]);
 
+  // Format display name for symbol (remove ^ from indices)
+  const formatDisplayName = (symbol: string) => {
+    if (symbol.startsWith('^')) {
+      switch (symbol) {
+        case '^GDAXI': return 'DAX 40';
+        case '^FTSE': return 'FTSE 100';
+        case '^GSPC': return 'S&P 500';
+        case '^DJI': return 'Dow Jones';
+        case '^IXIC': return 'NASDAQ';
+        case '^N225': return 'Nikkei 225';
+        case '^HSI': return 'Hang Seng';
+        default: return symbol.substring(1); // Remove the ^ prefix
+      }
+    }
+    return symbol;
+  };
+
   return (
     <Card className="bg-gray-800/50 border-gray-700">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center space-x-2 text-white">
-            <span>Historical Data - {symbol}</span>
+            <span>Historical Data - {formatDisplayName(symbol)}</span>
+            {symbol.startsWith('^') && (
+              <Badge variant="outline" className="ml-2 bg-blue-500/20 text-blue-400 border-blue-500">
+                Index
+              </Badge>
+            )}
             {isMarketOpen ? (
               <Badge variant="outline" className="ml-2 bg-green-500/20 text-green-400 border-green-500">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-1"></div>

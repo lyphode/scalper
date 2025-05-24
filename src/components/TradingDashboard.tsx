@@ -5,12 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MarketDataCard } from './MarketDataCard';
 import { HistoricalChart } from './HistoricalChart';
 import { RiskSignals } from './RiskSignals';
 import { FundamentalData } from './FundamentalData';
 import { OptionsData } from './OptionsData';
-import { Search, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Search, TrendingUp, AlertTriangle, Check, ChevronsUpDown } from 'lucide-react';
 
 // Simple interface for stock data in the mini cards
 interface MiniStockData {
@@ -20,46 +22,67 @@ interface MiniStockData {
   volume: number;
 }
 
+// Define market indices alongside individual stocks
+const marketIndices = [
+  { value: "^GDAXI", label: "DAX 40", type: "index" },
+  { value: "^FTSE", label: "FTSE 100", type: "index" },
+  { value: "^GSPC", label: "S&P 500", type: "index" },
+  { value: "^DJI", label: "Dow Jones", type: "index" },
+  { value: "^IXIC", label: "NASDAQ", type: "index" },
+  { value: "^N225", label: "Nikkei 225", type: "index" },
+  { value: "^HSI", label: "Hang Seng", type: "index" },
+  { value: "AAPL", label: "Apple", type: "stock" },
+  { value: "MSFT", label: "Microsoft", type: "stock" },
+  { value: "GOOGL", label: "Google", type: "stock" },
+  { value: "AMZN", label: "Amazon", type: "stock" },
+  { value: "TSLA", label: "Tesla", type: "stock" },
+  { value: "META", label: "Meta", type: "stock" },
+  { value: "NVDA", label: "NVIDIA", type: "stock" },
+];
+
 export const TradingDashboard = () => {
-  const [symbol, setSymbol] = useState('AAPL');
-  const [watchlist, setWatchlist] = useState(['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN']);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const [watchlist, setWatchlist] = useState(['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN', '^GSPC', '^FTSE']);
   const [selectedStock, setSelectedStock] = useState('AAPL');
   const [miniStocksData, setMiniStocksData] = useState<Record<string, MiniStockData>>({});
   
   // Generate random data for mini stock cards
   useEffect(() => {
-    const newData: Record<string, MiniStockData> = {};
-    
-    watchlist.forEach(stock => {
-      const basePrice = 100 + Math.random() * 200;
-      const change = (Math.random() - 0.5) * 10;
-      const changePercent = (change / basePrice) * 100;
+    const generateData = () => {
+      const newData: Record<string, MiniStockData> = {};
       
-      newData[stock] = {
-        price: basePrice,
-        change: change,
-        changePercent: changePercent,
-        volume: Math.floor(Math.random() * 90000000) + 10000000
-      };
-    });
+      watchlist.forEach(stock => {
+        const isIndex = stock.startsWith('^');
+        const basePrice = isIndex ? 1000 + Math.random() * 5000 : 100 + Math.random() * 200;
+        const change = (Math.random() - 0.5) * (isIndex ? 50 : 10);
+        const changePercent = (change / basePrice) * 100;
+        
+        newData[stock] = {
+          price: basePrice,
+          change: change,
+          changePercent: changePercent,
+          volume: Math.floor(Math.random() * 90000000) + 10000000
+        };
+      });
+      
+      return newData;
+    };
     
-    setMiniStocksData(newData);
+    setMiniStocksData(generateData());
   }, [watchlist]);
-
-  const handleSymbolSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (symbol && !watchlist.includes(symbol.toUpperCase())) {
-      const newWatchlist = [...watchlist, symbol.toUpperCase()];
-      setWatchlist(newWatchlist);
-      
-      // Generate data for the new symbol
-      const basePrice = 100 + Math.random() * 200;
-      const change = (Math.random() - 0.5) * 10;
+  
+  // Update data when selected stock changes
+  useEffect(() => {
+    if (selectedStock && !miniStocksData[selectedStock]) {
+      const isIndex = selectedStock.startsWith('^');
+      const basePrice = isIndex ? 1000 + Math.random() * 5000 : 100 + Math.random() * 200;
+      const change = (Math.random() - 0.5) * (isIndex ? 50 : 10);
       const changePercent = (change / basePrice) * 100;
       
       setMiniStocksData(prev => ({
         ...prev,
-        [symbol.toUpperCase()]: {
+        [selectedStock]: {
           price: basePrice,
           change: change,
           changePercent: changePercent,
@@ -67,7 +90,33 @@ export const TradingDashboard = () => {
         }
       }));
     }
-    setSelectedStock(symbol.toUpperCase());
+  }, [selectedStock]);
+
+  const handleAddToWatchlist = (value: string) => {
+    if (value && !watchlist.includes(value)) {
+      const newWatchlist = [...watchlist, value];
+      setWatchlist(newWatchlist);
+      
+      // Generate data for the new symbol if needed
+      if (!miniStocksData[value]) {
+        const isIndex = value.startsWith('^');
+        const basePrice = isIndex ? 1000 + Math.random() * 5000 : 100 + Math.random() * 200;
+        const change = (Math.random() - 0.5) * (isIndex ? 50 : 10);
+        const changePercent = (change / basePrice) * 100;
+        
+        setMiniStocksData(prev => ({
+          ...prev,
+          [value]: {
+            price: basePrice,
+            change: change,
+            changePercent: changePercent,
+            volume: Math.floor(Math.random() * 90000000) + 10000000
+          }
+        }));
+      }
+    }
+    setSelectedStock(value);
+    setOpen(false);
   };
 
   // Format volume for display
@@ -76,6 +125,15 @@ export const TradingDashboard = () => {
     if (num >= 1e6) return `${(num / 1e6).toFixed(2)}M`;
     if (num >= 1e3) return `${(num / 1e3).toFixed(2)}K`;
     return num.toString();
+  };
+
+  // Format symbol for display (remove ^ prefix for indices)
+  const formatDisplayName = (symbol: string) => {
+    const index = marketIndices.find(item => item.value === symbol);
+    if (index) {
+      return index.label;
+    }
+    return symbol;
   };
 
   return (
@@ -100,24 +158,99 @@ export const TradingDashboard = () => {
         {/* Symbol Search */}
         <Card className="bg-gray-800/50 border-gray-700">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
+            <CardTitle className="flex items-center space-x-2 text-white">
               <Search size={20} />
-              <span>Market Symbol</span>
+              <span>Market Symbol or Index</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSymbolSubmit} className="flex space-x-4">
-              <Input
-                type="text"
-                placeholder="Enter symbol (e.g., AAPL, GOOGL)"
-                value={symbol}
-                onChange={(e) => setSymbol(e.target.value)}
-                className="bg-gray-700 border-gray-600 text-white flex-1"
-              />
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+            <div className="flex space-x-4">
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-full justify-between bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
+                  >
+                    {selectedStock ? formatDisplayName(selectedStock) : "Search symbols..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0 bg-gray-800 border-gray-700">
+                  <Command className="bg-gray-800 text-white">
+                    <CommandInput 
+                      placeholder="Search stocks and indices..." 
+                      value={searchQuery}
+                      onValueChange={setSearchQuery}
+                      className="bg-gray-800 text-white"
+                    />
+                    <CommandEmpty>No results found.</CommandEmpty>
+                    <CommandGroup heading="Market Indices">
+                      {marketIndices
+                        .filter(item => item.type === "index" && (
+                          item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          item.value.toLowerCase().includes(searchQuery.toLowerCase())
+                        ))
+                        .map(item => (
+                          <CommandItem
+                            key={item.value}
+                            value={item.value}
+                            onSelect={(value) => handleAddToWatchlist(value)}
+                            className="text-white hover:bg-gray-700"
+                          >
+                            <Check
+                              className={`mr-2 h-4 w-4 ${selectedStock === item.value ? "opacity-100" : "opacity-0"}`}
+                            />
+                            {item.label}
+                            <Badge variant="outline" className="ml-2 bg-blue-500/10 text-blue-400 border-blue-500">
+                              Index
+                            </Badge>
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                    <CommandGroup heading="Stocks">
+                      {marketIndices
+                        .filter(item => item.type === "stock" && (
+                          item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          item.value.toLowerCase().includes(searchQuery.toLowerCase())
+                        ))
+                        .map(item => (
+                          <CommandItem
+                            key={item.value}
+                            value={item.value}
+                            onSelect={(value) => handleAddToWatchlist(value)}
+                            className="text-white hover:bg-gray-700"
+                          >
+                            <Check
+                              className={`mr-2 h-4 w-4 ${selectedStock === item.value ? "opacity-100" : "opacity-0"}`}
+                            />
+                            {item.label} ({item.value})
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                    <CommandGroup heading="Custom">
+                      {searchQuery && (
+                        <CommandItem
+                          value={searchQuery.toUpperCase()}
+                          onSelect={(value) => handleAddToWatchlist(value)}
+                          className="text-white hover:bg-gray-700"
+                        >
+                          Add "{searchQuery.toUpperCase()}"
+                        </CommandItem>
+                      )}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <Button 
+                type="button" 
+                onClick={() => handleAddToWatchlist(selectedStock)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
                 Add to Watchlist
               </Button>
-            </form>
+            </div>
           </CardContent>
         </Card>
 
@@ -134,7 +267,10 @@ export const TradingDashboard = () => {
                   : "bg-gray-800 text-gray-300 border-gray-600 hover:bg-gray-700"
               }`}
             >
-              {stock}
+              {formatDisplayName(stock)}
+              {stock.startsWith('^') && (
+                <span className="ml-1 w-2 h-2 bg-blue-400 rounded-full inline-block"></span>
+              )}
             </Button>
           ))}
         </div>
