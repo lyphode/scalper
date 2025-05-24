@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MarketDataCard } from './MarketDataCard';
 import { HistoricalChart } from './HistoricalChart';
@@ -136,6 +136,22 @@ export const TradingDashboard = () => {
     return symbol;
   };
 
+  // Get filtered indices based on search query
+  const filteredIndices = marketIndices.filter(item => 
+    item.type === "index" && (
+      item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.value.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  );
+
+  // Get filtered stocks based on search query
+  const filteredStocks = marketIndices.filter(item => 
+    item.type === "stock" && (
+      item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.value.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -185,14 +201,10 @@ export const TradingDashboard = () => {
                       onValueChange={setSearchQuery}
                       className="bg-gray-800 text-white"
                     />
-                    <CommandEmpty>No results found.</CommandEmpty>
-                    <CommandGroup heading="Market Indices">
-                      {marketIndices
-                        .filter(item => item.type === "index" && (
-                          item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.value.toLowerCase().includes(searchQuery.toLowerCase())
-                        ))
-                        .map(item => (
+                    <CommandList>
+                      <CommandEmpty>No results found.</CommandEmpty>
+                      <CommandGroup heading="Market Indices">
+                        {filteredIndices.map(item => (
                           <CommandItem
                             key={item.value}
                             value={item.value}
@@ -208,14 +220,9 @@ export const TradingDashboard = () => {
                             </Badge>
                           </CommandItem>
                         ))}
-                    </CommandGroup>
-                    <CommandGroup heading="Stocks">
-                      {marketIndices
-                        .filter(item => item.type === "stock" && (
-                          item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.value.toLowerCase().includes(searchQuery.toLowerCase())
-                        ))
-                        .map(item => (
+                      </CommandGroup>
+                      <CommandGroup heading="Stocks">
+                        {filteredStocks.map(item => (
                           <CommandItem
                             key={item.value}
                             value={item.value}
@@ -228,18 +235,19 @@ export const TradingDashboard = () => {
                             {item.label} ({item.value})
                           </CommandItem>
                         ))}
-                    </CommandGroup>
-                    <CommandGroup heading="Custom">
+                      </CommandGroup>
                       {searchQuery && (
-                        <CommandItem
-                          value={searchQuery.toUpperCase()}
-                          onSelect={(value) => handleAddToWatchlist(value)}
-                          className="text-white hover:bg-gray-700"
-                        >
-                          Add "{searchQuery.toUpperCase()}"
-                        </CommandItem>
+                        <CommandGroup heading="Custom">
+                          <CommandItem
+                            value={searchQuery.toUpperCase()}
+                            onSelect={(value) => handleAddToWatchlist(value)}
+                            className="text-white hover:bg-gray-700"
+                          >
+                            Add "{searchQuery.toUpperCase()}"
+                          </CommandItem>
+                        </CommandGroup>
                       )}
-                    </CommandGroup>
+                    </CommandList>
                   </Command>
                 </PopoverContent>
               </Popover>
