@@ -1,11 +1,14 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { TradingDashboard } from '@/components/TradingDashboard';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-gray-900">
-      <TradingDashboard />
+      <TooltipProvider>
+        <TradingDashboard />
+      </TooltipProvider>
     </div>
   );
 };
