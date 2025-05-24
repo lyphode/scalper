@@ -96,7 +96,7 @@ export const RiskSignals: React.FC<RiskSignalsProps> = ({ symbol, detailed = fal
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <Card className="bg-gray-800/50 border-gray-700">
         <CardHeader>
-          <CardTitle>Active Signals - {symbol}</CardTitle>
+          <CardTitle className="text-blue-400">Active Signals - {symbol}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {signals.map((signal, index) => (
@@ -104,7 +104,7 @@ export const RiskSignals: React.FC<RiskSignalsProps> = ({ symbol, detailed = fal
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
                   {getRiskIcon(signal.risk)}
-                  <span className="font-semibold">{signal.signal}</span>
+                  <span className="font-semibold text-blue-300">{signal.signal}</span>
                 </div>
                 <Badge variant="outline" className={`text-xs ${getRiskColor(signal.risk)}`}>
                   {signal.risk} Risk
@@ -128,7 +128,7 @@ export const RiskSignals: React.FC<RiskSignalsProps> = ({ symbol, detailed = fal
 
       <Card className="bg-gray-800/50 border-gray-700">
         <CardHeader>
-          <CardTitle>Risk Assessment Summary</CardTitle>
+          <CardTitle className="text-blue-400">Risk Assessment Summary</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
