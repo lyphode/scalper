@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Clock } from 'lucide-react';
 
@@ -105,7 +105,7 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({ symbol }) => {
       <CardContent>
         <div className="h-96 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
+            <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis 
                 dataKey="time" 
@@ -126,15 +126,13 @@ export const HistoricalChart: React.FC<HistoricalChartProps> = ({ symbol }) => {
                   color: '#F9FAFB'
                 }}
               />
-              <Line 
-                type="monotone" 
+              <Bar 
                 dataKey="price" 
-                stroke="#3B82F6" 
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 4, fill: '#3B82F6' }}
+                fill="#3B82F6" 
+                radius={[4, 4, 0, 0]}
+                name="Price"
               />
-            </LineChart>
+            </BarChart>
           </ResponsiveContainer>
         </div>
         
