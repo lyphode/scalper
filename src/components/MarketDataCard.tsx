@@ -22,6 +22,26 @@ export const MarketDataCard: React.FC<MarketDataCardProps> = ({ symbol }) => {
   });
   const [isMarketOpen, setIsMarketOpen] = useState(false);
 
+  // Reset data when symbol changes
+  useEffect(() => {
+    // Generate new initial data for the selected symbol
+    const basePrice = 100 + Math.random() * 200;
+    const change = (Math.random() - 0.5) * 5;
+    const changePercent = change / basePrice * 100;
+    
+    setMarketData({
+      price: basePrice,
+      change: change,
+      changePercent: changePercent,
+      volume: Math.floor(Math.random() * 90000000) + 10000000,
+      marketCap: Math.random() * 5e12,
+      dayHigh: basePrice * (1 + Math.random() * 0.03),
+      dayLow: basePrice * (1 - Math.random() * 0.03),
+      pe_ratio: Math.random() * 40 + 10,
+      avgVolume: Math.floor(Math.random() * 90000000) + 10000000
+    });
+  }, [symbol]);
+
   // Check if market is open
   useEffect(() => {
     const checkMarketStatus = () => {
@@ -42,7 +62,7 @@ export const MarketDataCard: React.FC<MarketDataCardProps> = ({ symbol }) => {
     return () => clearInterval(intervalId);
   }, []);
 
-  // Simulated real-time updates
+  // Simulated real-time updates - reset interval when symbol changes
   useEffect(() => {
     const interval = setInterval(() => {
       setMarketData(prev => ({
@@ -170,3 +190,4 @@ export const MarketDataCard: React.FC<MarketDataCardProps> = ({ symbol }) => {
     </Card>
   );
 };
+

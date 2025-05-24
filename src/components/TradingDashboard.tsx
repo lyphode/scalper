@@ -12,17 +12,70 @@ import { FundamentalData } from './FundamentalData';
 import { OptionsData } from './OptionsData';
 import { Search, TrendingUp, AlertTriangle } from 'lucide-react';
 
+// Simple interface for stock data in the mini cards
+interface MiniStockData {
+  price: number;
+  change: number;
+  changePercent: number;
+  volume: number;
+}
+
 export const TradingDashboard = () => {
   const [symbol, setSymbol] = useState('AAPL');
   const [watchlist, setWatchlist] = useState(['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN']);
   const [selectedStock, setSelectedStock] = useState('AAPL');
+  const [miniStocksData, setMiniStocksData] = useState<Record<string, MiniStockData>>({});
+  
+  // Generate random data for mini stock cards
+  useEffect(() => {
+    const newData: Record<string, MiniStockData> = {};
+    
+    watchlist.forEach(stock => {
+      const basePrice = 100 + Math.random() * 200;
+      const change = (Math.random() - 0.5) * 10;
+      const changePercent = (change / basePrice) * 100;
+      
+      newData[stock] = {
+        price: basePrice,
+        change: change,
+        changePercent: changePercent,
+        volume: Math.floor(Math.random() * 90000000) + 10000000
+      };
+    });
+    
+    setMiniStocksData(newData);
+  }, [watchlist]);
 
   const handleSymbolSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (symbol && !watchlist.includes(symbol.toUpperCase())) {
-      setWatchlist([...watchlist, symbol.toUpperCase()]);
+      const newWatchlist = [...watchlist, symbol.toUpperCase()];
+      setWatchlist(newWatchlist);
+      
+      // Generate data for the new symbol
+      const basePrice = 100 + Math.random() * 200;
+      const change = (Math.random() - 0.5) * 10;
+      const changePercent = (change / basePrice) * 100;
+      
+      setMiniStocksData(prev => ({
+        ...prev,
+        [symbol.toUpperCase()]: {
+          price: basePrice,
+          change: change,
+          changePercent: changePercent,
+          volume: Math.floor(Math.random() * 90000000) + 10000000
+        }
+      }));
     }
     setSelectedStock(symbol.toUpperCase());
+  };
+
+  // Format volume for display
+  const formatVolume = (num: number) => {
+    if (num >= 1e9) return `${(num / 1e9).toFixed(2)}B`;
+    if (num >= 1e6) return `${(num / 1e6).toFixed(2)}M`;
+    if (num >= 1e3) return `${(num / 1e3).toFixed(2)}K`;
+    return num.toString();
   };
 
   return (
@@ -118,15 +171,20 @@ export const TradingDashboard = () => {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Price:</span>
-                        <span className="text-green-400">$150.23</span>
+                        <span className={miniStocksData[stock]?.change >= 0 ? "text-green-400" : "text-red-400"}>
+                          ${miniStocksData[stock]?.price.toFixed(2) || '0.00'}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Change:</span>
-                        <span className="text-green-400">+2.45%</span>
+                        <span className={miniStocksData[stock]?.change >= 0 ? "text-green-400" : "text-red-400"}>
+                          {miniStocksData[stock]?.change >= 0 ? '+' : ''}
+                          {miniStocksData[stock]?.changePercent.toFixed(2) || '0.00'}%
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Volume:</span>
-                        <span>45.2M</span>
+                        <span>{formatVolume(miniStocksData[stock]?.volume || 0)}</span>
                       </div>
                     </div>
                   </CardContent>
